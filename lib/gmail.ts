@@ -111,6 +111,25 @@ export async function sendConfirmationEmail(reg: RegistrationData, paymentId: st
     subject: `Registration Confirmed — ${reg.childName} | ${reg.weekLabel}`,
     html,
   });
+
+  // Notify organizer of each new signup
+  await transport.sendMail({
+    from: `"The Arena Lilburn" <${process.env.GMAIL_USER}>`,
+    to: process.env.ORGANIZER_EMAIL!,
+    subject: `New Signup — ${reg.childName} | ${reg.weekLabel}`,
+    text: [
+      `New camp registration received.`,
+      ``,
+      `Child: ${reg.childName} (Age ${reg.age})`,
+      `Parent: ${reg.parentName}`,
+      `Email: ${reg.email}`,
+      `Phone: ${reg.phoneMom}`,
+      `Week: ${reg.weekLabel}`,
+      `Session: ${reg.sessionLabel} · ${reg.sessionTime}`,
+      `Amount Paid: $${reg.price}.00`,
+      `Payment ID: ${paymentId}`,
+    ].join("\n"),
+  });
 }
 
 export async function sendDailySummaryEmail(registrations: { week: string; count: number }[], total: number) {
