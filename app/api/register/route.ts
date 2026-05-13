@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
     }
 
-    return NextResponse.json({ checkoutUrl });
+    return NextResponse.json({ checkoutUrl, registrationId: id });
   } catch (err) {
     console.error("Register error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
