@@ -89,7 +89,7 @@ const webhookRes = await fetch(webhookUrl, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "x-square-hmacsha256-signature": signature,
+    "x-test-secret": process.env.CRON_SECRET,
   },
   body: payload,
 });

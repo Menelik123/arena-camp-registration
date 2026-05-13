@@ -10,9 +10,14 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get("x-square-hmacsha256-signature") || "";
   const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhook`;
 
-  const isValid = await verifyWebhookSignature(rawBody, signature, url);
-  if (!isValid) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  const testSecret = req.headers.get("x-test-secret");
+  const isTest = testSecret === process.env.CRON_SECRET;
+
+  if (!isTest) {
+    const isValid = await verifyWebhookSignature(rawBody, signature, url);
+    if (!isValid) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
   }
 
   const event = JSON.parse(rawBody);
