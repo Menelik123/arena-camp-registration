@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { createCheckout } from "@/lib/square";
+import { createOrder } from "@/lib/paypal";
 import { saveRegistration } from "@/lib/redis";
 import { RegistrationData } from "@/lib/types";
 
@@ -11,16 +11,10 @@ export async function POST(req: NextRequest) {
     const id = randomUUID();
     await saveRegistration(id, data);
 
-    const amountCents = data.price * 100;
-    const description = `The Arena Summer Camp — ${data.weekLabel} ${data.sessionLabel}`;
+    const description = `The Arena Lilburn — ${data.campLabel} | ${data.weekLabel} ${data.sessionLabel}`;
+    const approvalUrl = await createOrder(id, data.price, description);
 
-    const checkoutUrl = await createCheckout(id, amountCents, description, data.email);
-
-    if (!checkoutUrl) {
-      return NextResponse.json({ error: "Failed to create checkout" }, { status: 500 });
-    }
-
-    return NextResponse.json({ checkoutUrl, registrationId: id });
+    return NextResponse.json({ checkoutUrl: approvalUrl, registrationId: id });
   } catch (err) {
     console.error("Register error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
