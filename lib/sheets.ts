@@ -5,6 +5,7 @@ export async function appendRegistration(reg: RegistrationData, paymentId: strin
 
   const payload = {
     date: new Date().toLocaleDateString("en-US"),
+    campLabel: reg.campLabel,
     parentName: reg.parentName,
     email: reg.email,
     address: reg.address,

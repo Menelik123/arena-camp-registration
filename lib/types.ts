@@ -14,6 +14,8 @@ export interface RegistrationData {
   sports: string[];
 
   // Camp selection
+  campId: string;
+  campLabel: string;
   weekId: number;
   weekLabel: string;
   session: string;

@@ -9,6 +9,29 @@ export const CAMP_WEEKS = [
   { id: 8, label: "Week 8 — August 4–7" },
 ];
 
+export const CAMPS = [
+  {
+    id: "multisport",
+    label: "Multi-Sport Summer Camp",
+    tagline: "Basketball · Soccer · Volleyball · Futsal · Pickleball",
+    sessions: [
+      { id: "morning", label: "Morning Session", time: "9AM – 12PM", price: 75 },
+      { id: "afternoon", label: "Afternoon Session", time: "1PM – 4PM", price: 75 },
+      { id: "fullday", label: "Full Day", time: "9AM – 4PM", price: 150 },
+    ],
+  },
+  {
+    id: "basketball",
+    label: "Basketball Training Camp",
+    tagline: "Train Like a Pro · Play Like a Champion",
+    sessions: [
+      { id: "morning", label: "Morning Session", time: "9AM – 12PM", price: 95 },
+      { id: "afternoon", label: "Afternoon Session", time: "1PM – 4PM", price: 95 },
+      { id: "fullday", label: "Full Day", time: "9AM – 4PM", price: 175 },
+    ],
+  },
+];
+
 export const SESSIONS = [
   { id: "morning", label: "Morning Session", time: "9AM – 12PM", price: 75 },
   { id: "afternoon", label: "Afternoon Session", time: "1PM – 4PM", price: 75 },

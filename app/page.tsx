@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CAMP_WEEKS, SESSIONS, SPORTS, HOW_HEARD_OPTIONS } from "@/lib/constants";
+import { CAMP_WEEKS, CAMPS, SPORTS, HOW_HEARD_OPTIONS } from "@/lib/constants";
 import { RegistrationData } from "@/lib/types";
 
 const TOTAL_STEPS = 7;
@@ -11,6 +11,7 @@ const PRIORITY_OPTIONS = ["low", "moderate", "high"];
 const emptyForm: RegistrationData = {
   parentName: "", email: "", address: "", phoneMom: "", phoneDad: "",
   childName: "", dob: "", age: "", school: "", sports: [],
+  campId: "", campLabel: "",
   weekId: 0, weekLabel: "", session: "", sessionLabel: "", sessionTime: "", price: 0,
   emergencyContactName: "", emergencyContactPhone: "",
   hasAllergies: "no", allergyDetails: "",
@@ -119,8 +120,19 @@ export default function RegistrationPage() {
     );
   }
 
+  function selectCamp(campId: string) {
+    const c = CAMPS.find((c) => c.id === campId)!;
+    setForm((prev) => ({
+      ...prev,
+      campId: c.id,
+      campLabel: c.label,
+      session: "", sessionLabel: "", sessionTime: "", price: 0,
+    }));
+  }
+
   function selectSession(sessionId: string) {
-    const s = SESSIONS.find((s) => s.id === sessionId)!;
+    const camp = CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0];
+    const s = camp.sessions.find((s) => s.id === sessionId)!;
     setForm((prev) => ({
       ...prev,
       session: s.id,
@@ -150,6 +162,7 @@ export default function RegistrationPage() {
           return "Please select at least one sport.";
         break;
       case 2:
+        if (!form.campId) return "Please select a camp.";
         if (!form.weekId || !form.session)
           return "Please select a week and session.";
         break;
@@ -304,6 +317,26 @@ export default function RegistrationPage() {
         {step === 2 && (
           <div className="space-y-6">
             <div>
+              <Label required>Which Camp?</Label>
+              <div className="space-y-2">
+                {CAMPS.map((camp) => (
+                  <button
+                    key={camp.id}
+                    type="button"
+                    onClick={() => selectCamp(camp.id)}
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                      form.campId === camp.id
+                        ? "bg-yellow-400/10 border-yellow-400"
+                        : "bg-gray-900 border-gray-700 hover:border-gray-500"
+                    }`}
+                  >
+                    <p className={`text-sm font-semibold ${form.campId === camp.id ? "text-yellow-400" : "text-gray-300"}`}>{camp.label}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{camp.tagline}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
               <Label required>Choose Your Week</Label>
               <div className="space-y-2">
                 {CAMP_WEEKS.map((week) => (
@@ -325,7 +358,7 @@ export default function RegistrationPage() {
             <div>
               <Label required>Choose Your Session</Label>
               <div className="space-y-2">
-                {SESSIONS.map((s) => (
+                {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).sessions.map((s) => (
                   <button
                     key={s.id}
                     type="button"

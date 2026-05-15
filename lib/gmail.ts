@@ -120,6 +120,7 @@ export async function sendConfirmationEmail(reg: RegistrationData, paymentId: st
     text: [
       `New camp registration received.`,
       ``,
+      `Camp: ${reg.campLabel}`,
       `Child: ${reg.childName} (Age ${reg.age})`,
       `Parent: ${reg.parentName}`,
       `Email: ${reg.email}`,
