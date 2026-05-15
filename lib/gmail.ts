@@ -89,7 +89,7 @@ export async function sendConfirmationEmail(reg: RegistrationData, paymentId: st
       <ul class="what-to-expect">
         <li>Check-in opens 15 minutes before your session starts</li>
         <li>Wear comfortable athletic clothing and bring water</li>
-        <li>Campers will rotate through Basketball, Soccer, Volleyball, Futsal & Pickleball</li>
+        <li>${reg.campId === "basketball" ? "Focused basketball training — skills, drills, and gameplay" : "Campers will rotate through Basketball, Soccer, Volleyball, Futsal & Pickleball"}</li>
         <li>Camp runs Monday through Thursday — no Friday sessions</li>
         <li>For questions contact us at thearenalilburn.com</li>
       </ul>
