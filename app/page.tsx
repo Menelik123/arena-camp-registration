@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CAMP_WEEKS, CAMPS, SPORTS, HOW_HEARD_OPTIONS } from "@/lib/constants";
+import { CAMPS, SPORTS, HOW_HEARD_OPTIONS } from "@/lib/constants";
 import { RegistrationData } from "@/lib/types";
 
 const TOTAL_STEPS = 7;
@@ -143,7 +143,8 @@ export default function RegistrationPage() {
   }
 
   function selectWeek(weekId: number) {
-    const w = CAMP_WEEKS.find((w) => w.id === weekId)!;
+    const camp = CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0];
+    const w = camp.weeks.find((w) => w.id === weekId)!;
     setForm((prev) => ({ ...prev, weekId: w.id, weekLabel: w.label }));
   }
 
@@ -277,15 +278,13 @@ export default function RegistrationPage() {
               <Label required>Child&apos;s Full Name</Label>
               <Input id="childName" value={form.childName} onChange={(v) => set("childName", v)} placeholder="Full name" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label required>Date of Birth</Label>
-                <Input id="dob" type="date" value={form.dob} onChange={(v) => set("dob", v)} />
-              </div>
-              <div>
-                <Label required>Age at Camp Start</Label>
-                <Input id="age" value={form.age} onChange={(v) => set("age", v)} placeholder="e.g. 10" />
-              </div>
+            <div>
+              <Label required>Date of Birth</Label>
+              <Input id="dob" type="date" value={form.dob} onChange={(v) => set("dob", v)} />
+            </div>
+            <div>
+              <Label required>Age at Camp Start</Label>
+              <Input id="age" value={form.age} onChange={(v) => set("age", v)} placeholder="e.g. 10" />
             </div>
             <div>
               <Label required>Current School</Label>
@@ -339,7 +338,7 @@ export default function RegistrationPage() {
             <div>
               <Label required>Choose Your Week</Label>
               <div className="space-y-2">
-                {CAMP_WEEKS.map((week) => (
+                {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).weeks.map((week) => (
                   <button
                     key={week.id}
                     type="button"
