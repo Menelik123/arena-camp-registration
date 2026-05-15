@@ -15,7 +15,7 @@ export const CAMPS = [
     tagline: "Basketball · Soccer · Volleyball · Futsal · Pickleball",
     weeks: MULTISPORT_WEEKS,
     sessions: [
-      { id: "morning", label: "Morning Session", time: "9AM – 12PM", price: 75 },
+      { id: "morning", label: "Morning Session", time: "9AM – 12PM", price: 1 },
       { id: "afternoon", label: "Afternoon Session", time: "1PM – 4PM", price: 75 },
       { id: "fullday", label: "Full Day", time: "9AM – 4PM", price: 150 },
     ],
