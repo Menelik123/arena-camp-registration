@@ -50,7 +50,7 @@ export async function sendConfirmationEmail(reg: RegistrationData, paymentId: st
   <div class="wrapper">
     <div class="header">
       <h1>The Arena Lilburn</h1>
-      <p>Multi-Sport Summer Camp</p>
+      <p>${reg.campLabel}</p>
     </div>
     <div class="body">
       <div class="confirm-box">
