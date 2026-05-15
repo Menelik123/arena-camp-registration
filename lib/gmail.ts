@@ -115,7 +115,7 @@ export async function sendConfirmationEmail(reg: RegistrationData, paymentId: st
   // Notify organizer of each new signup
   await transport.sendMail({
     from: `"The Arena Lilburn" <${process.env.GMAIL_USER}>`,
-    to: process.env.ORGANIZER_EMAIL!,
+    to: `${process.env.ORGANIZER_EMAIL}, ${process.env.GMAIL_USER}`,
     subject: `New Signup — ${reg.childName} | ${reg.weekLabel}`,
     text: [
       `New camp registration received.`,
@@ -181,7 +181,7 @@ export async function sendDailySummaryEmail(registrations: { week: string; count
 
   await transport.sendMail({
     from: `"The Arena Camp" <${process.env.GMAIL_USER}>`,
-    to: process.env.ORGANIZER_EMAIL!,
+    to: `${process.env.ORGANIZER_EMAIL}, ${process.env.GMAIL_USER}`,
     subject: `Camp Signups Today — ${total} Total | ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
     html,
   });
