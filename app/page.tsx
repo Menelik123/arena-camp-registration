@@ -570,7 +570,7 @@ export default function RegistrationPage() {
             </div>
 
             <p className="text-xs text-gray-500 text-center">
-              After submitting you&apos;ll be redirected to Square to complete payment. A confirmation email will be sent to <span className="text-gray-400">{form.email}</span> once payment is confirmed.
+              After submitting you&apos;ll be redirected to PayPal to complete payment. A confirmation email will be sent to <span className="text-gray-400">{form.email}</span> once payment is confirmed.
             </p>
           </div>
         )}
