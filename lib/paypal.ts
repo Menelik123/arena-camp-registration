@@ -43,15 +43,13 @@ export async function createOrder(
           },
         },
       ],
-      payment_source: {
-        paypal: {
-          experience_context: {
-            return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/paypal/capture?registrationId=${registrationId}`,
-            cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?cancelled=true`,
-            user_action: "PAY_NOW",
-            brand_name: "The Arena Lilburn",
-          },
-        },
+      application_context: {
+        return_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/paypal/capture?registrationId=${registrationId}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/?cancelled=true`,
+        user_action: "PAY_NOW",
+        brand_name: "The Arena Lilburn",
+        shipping_preference: "NO_SHIPPING",
+        landing_page: "BILLING",
       },
     }),
   });
@@ -62,7 +60,7 @@ export async function createOrder(
     throw new Error(`PayPal create order failed: ${JSON.stringify(order)}`);
   }
 
-  const approvalLink = order.links?.find((l: { rel: string }) => l.rel === "payer-action")?.href;
+  const approvalLink = order.links?.find((l: { rel: string }) => l.rel === "approve")?.href;
   if (!approvalLink) throw new Error("No PayPal approval URL returned");
 
   return approvalLink;
