@@ -14,10 +14,15 @@ export interface RegistrationData {
   sports: string[];
 
   // Camp selection
+  isBundle: boolean;
   campId: string;
   campLabel: string;
   weekId: number;
   weekLabel: string;
+  camp2Id: string;
+  camp2Label: string;
+  week2Id: number;
+  week2Label: string;
   session: string;
   sessionLabel: string;
   sessionTime: string;

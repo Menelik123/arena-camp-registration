@@ -1,18 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { CAMPS, SPORTS, HOW_HEARD_OPTIONS } from "@/lib/constants";
+import { CAMPS, SPORTS, HOW_HEARD_OPTIONS, BUNDLE_PRICE, FLASH_SALE_END } from "@/lib/constants";
 import { RegistrationData } from "@/lib/types";
 
 const TOTAL_STEPS = 7;
 
 const PRIORITY_OPTIONS = ["low", "moderate", "high"];
 
+const FLASH_SALE_ACTIVE = new Date() < FLASH_SALE_END;
+
 const emptyForm: RegistrationData = {
   parentName: "", email: "", address: "", phoneMom: "", phoneDad: "",
   childName: "", dob: "", age: "", school: "", sports: [],
+  isBundle: false,
   campId: "", campLabel: "",
-  weekId: 0, weekLabel: "", session: "", sessionLabel: "", sessionTime: "", price: 0,
+  weekId: 0, weekLabel: "",
+  camp2Id: "", camp2Label: "",
+  week2Id: 0, week2Label: "",
+  session: "", sessionLabel: "", sessionTime: "", price: 0,
   emergencyContactName: "", emergencyContactPhone: "",
   hasAllergies: "no", allergyDetails: "",
   hasMedicalConditions: "no", medicalDetails: "",
@@ -148,6 +154,50 @@ export default function RegistrationPage() {
     setForm((prev) => ({ ...prev, weekId: w.id, weekLabel: w.label }));
   }
 
+  function toggleBundle(enable: boolean) {
+    if (enable) {
+      const fullDay = CAMPS[0].sessions.find((s) => s.id === "fullday")!;
+      setForm((prev) => ({
+        ...prev,
+        isBundle: true,
+        session: fullDay.id,
+        sessionLabel: fullDay.label,
+        sessionTime: fullDay.time,
+        price: BUNDLE_PRICE,
+        campId: "", campLabel: "", weekId: 0, weekLabel: "",
+        camp2Id: "", camp2Label: "", week2Id: 0, week2Label: "",
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        isBundle: false,
+        session: "", sessionLabel: "", sessionTime: "", price: 0,
+        campId: "", campLabel: "", weekId: 0, weekLabel: "",
+        camp2Id: "", camp2Label: "", week2Id: 0, week2Label: "",
+      }));
+    }
+  }
+
+  function selectBundleCamp(slot: 1 | 2, campId: string) {
+    const c = CAMPS.find((c) => c.id === campId)!;
+    if (slot === 1) {
+      setForm((prev) => ({ ...prev, campId: c.id, campLabel: c.label, weekId: 0, weekLabel: "" }));
+    } else {
+      setForm((prev) => ({ ...prev, camp2Id: c.id, camp2Label: c.label, week2Id: 0, week2Label: "" }));
+    }
+  }
+
+  function selectBundleWeek(slot: 1 | 2, weekId: number) {
+    const campId = slot === 1 ? form.campId : form.camp2Id;
+    const camp = CAMPS.find((c) => c.id === campId) ?? CAMPS[0];
+    const w = camp.weeks.find((w) => w.id === weekId)!;
+    if (slot === 1) {
+      setForm((prev) => ({ ...prev, weekId: w.id, weekLabel: w.label }));
+    } else {
+      setForm((prev) => ({ ...prev, week2Id: w.id, week2Label: w.label }));
+    }
+  }
+
   function validateStep(): string {
     switch (step) {
       case 0:
@@ -163,9 +213,13 @@ export default function RegistrationPage() {
           return "Please select at least one sport.";
         break;
       case 2:
-        if (!form.campId) return "Please select a camp.";
-        if (!form.weekId || !form.session)
-          return "Please select a week and session.";
+        if (form.isBundle) {
+          if (!form.campId || !form.weekId) return "Please select a camp and week for Week 1.";
+          if (!form.camp2Id || !form.week2Id) return "Please select a camp and week for Week 2.";
+        } else {
+          if (!form.campId) return "Please select a camp.";
+          if (!form.weekId || !form.session) return "Please select a week and session.";
+        }
         break;
       case 3:
         if (!form.emergencyContactName || !form.emergencyContactPhone)
@@ -315,76 +369,225 @@ export default function RegistrationPage() {
 
         {step === 2 && (
           <div className="space-y-6">
+            {/* Registration type toggle */}
             <div>
-              <Label required>Which Camp?</Label>
-              <div className="space-y-2">
-                {CAMPS.map((camp) => (
+              <Label required>Registration Type</Label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleBundle(false)}
+                  className={`flex-1 py-3 px-3 rounded-lg border text-sm font-medium transition-all ${
+                    !form.isBundle
+                      ? "bg-yellow-400/10 border-yellow-400 text-yellow-400"
+                      : "bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-500"
+                  }`}
+                >
+                  Single Week
+                </button>
+                {FLASH_SALE_ACTIVE && (
                   <button
-                    key={camp.id}
                     type="button"
-                    onClick={() => selectCamp(camp.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
-                      form.campId === camp.id
-                        ? "bg-yellow-400/10 border-yellow-400"
-                        : "bg-gray-900 border-gray-700 hover:border-gray-500"
-                    }`}
-                  >
-                    <p className={`text-sm font-semibold ${form.campId === camp.id ? "text-yellow-400" : "text-gray-300"}`}>{camp.label}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{camp.tagline}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Label required>Choose Your Week</Label>
-              <div className="space-y-2">
-                {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).weeks.map((week) => (
-                  <button
-                    key={week.id}
-                    type="button"
-                    onClick={() => selectWeek(week.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
-                      form.weekId === week.id
+                    onClick={() => toggleBundle(true)}
+                    className={`flex-1 py-3 px-3 rounded-lg border text-sm font-medium transition-all ${
+                      form.isBundle
                         ? "bg-yellow-400/10 border-yellow-400 text-yellow-400"
-                        : "bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500"
+                        : "bg-gray-900 border-yellow-400/50 text-gray-300 hover:border-yellow-400"
                     }`}
                   >
-                    {week.label}
+                    🔥 2-Week Bundle — $290
                   </button>
-                ))}
+                )}
               </div>
+              {FLASH_SALE_ACTIVE && (
+                <p className="text-xs text-yellow-400/70 mt-2 text-center">
+                  Flash sale ends May 28 · Full Day only · Mix camps
+                </p>
+              )}
             </div>
-            <div>
-              <Label required>Choose Your Session</Label>
-              <div className="space-y-2">
-                {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).sessions.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => selectSession(s.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
-                      form.session === s.id
-                        ? "bg-yellow-400/10 border-yellow-400"
-                        : "bg-gray-900 border-gray-700 hover:border-gray-500"
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className={`text-sm font-medium ${form.session === s.id ? "text-yellow-400" : "text-gray-300"}`}>{s.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{s.time} &middot; Mon–Thu</p>
-                      </div>
-                      <span className={`text-base font-bold ${form.session === s.id ? "text-yellow-400" : "text-gray-400"}`}>${s.price}</span>
+
+            {/* Bundle mode */}
+            {form.isBundle ? (
+              <div className="space-y-6">
+                {/* Week 1 */}
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-white uppercase tracking-widest">Week 1</p>
+                  <div>
+                    <Label required>Camp</Label>
+                    <div className="space-y-2">
+                      {CAMPS.map((camp) => (
+                        <button
+                          key={camp.id}
+                          type="button"
+                          onClick={() => selectBundleCamp(1, camp.id)}
+                          className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                            form.campId === camp.id
+                              ? "bg-yellow-400/10 border-yellow-400"
+                              : "bg-gray-900 border-gray-700 hover:border-gray-500"
+                          }`}
+                        >
+                          <p className={`text-sm font-semibold ${form.campId === camp.id ? "text-yellow-400" : "text-gray-300"}`}>{camp.label}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{camp.tagline}</p>
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                ))}
+                  </div>
+                  {form.campId && (
+                    <div>
+                      <Label required>Week</Label>
+                      <div className="space-y-2">
+                        {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).weeks.map((week) => (
+                          <button
+                            key={week.id}
+                            type="button"
+                            onClick={() => selectBundleWeek(1, week.id)}
+                            className={`w-full text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
+                              form.weekId === week.id
+                                ? "bg-yellow-400/10 border-yellow-400 text-yellow-400"
+                                : "bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500"
+                            }`}
+                          >
+                            {week.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Week 2 */}
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-white uppercase tracking-widest">Week 2</p>
+                  <div>
+                    <Label required>Camp</Label>
+                    <div className="space-y-2">
+                      {CAMPS.map((camp) => (
+                        <button
+                          key={camp.id}
+                          type="button"
+                          onClick={() => selectBundleCamp(2, camp.id)}
+                          className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                            form.camp2Id === camp.id
+                              ? "bg-yellow-400/10 border-yellow-400"
+                              : "bg-gray-900 border-gray-700 hover:border-gray-500"
+                          }`}
+                        >
+                          <p className={`text-sm font-semibold ${form.camp2Id === camp.id ? "text-yellow-400" : "text-gray-300"}`}>{camp.label}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{camp.tagline}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {form.camp2Id && (
+                    <div>
+                      <Label required>Week</Label>
+                      <div className="space-y-2">
+                        {(CAMPS.find((c) => c.id === form.camp2Id) ?? CAMPS[0]).weeks.map((week) => (
+                          <button
+                            key={week.id}
+                            type="button"
+                            onClick={() => selectBundleWeek(2, week.id)}
+                            className={`w-full text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
+                              form.week2Id === week.id
+                                ? "bg-yellow-400/10 border-yellow-400 text-yellow-400"
+                                : "bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500"
+                            }`}
+                          >
+                            {week.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {form.weekId > 0 && form.week2Id > 0 && (
+                  <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-lg px-4 py-3 space-y-1">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Bundle Summary</p>
+                    <p className="text-white text-sm font-medium mt-1">Week 1: {form.campLabel} &middot; {form.weekLabel}</p>
+                    <p className="text-white text-sm font-medium">Week 2: {form.camp2Label} &middot; {form.week2Label}</p>
+                    <p className="text-gray-400 text-xs">Full Day (9AM – 4PM) &middot; Both weeks</p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <p className="text-yellow-400 font-bold text-lg">${BUNDLE_PRICE}.00</p>
+                      <span className="text-xs bg-yellow-400 text-black font-bold px-2 py-0.5 rounded-full">FLASH SALE</span>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            {form.session && form.weekId > 0 && (
-              <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-lg px-4 py-3">
-                <p className="text-xs text-gray-400 uppercase tracking-wide">Your selection</p>
-                <p className="text-white text-sm font-medium mt-1">{form.weekLabel}</p>
-                <p className="text-gray-400 text-sm">{form.sessionLabel} &middot; {form.sessionTime}</p>
-                <p className="text-yellow-400 font-bold text-lg mt-1">${form.price}.00</p>
+            ) : (
+              /* Single week mode */
+              <div className="space-y-6">
+                <div>
+                  <Label required>Which Camp?</Label>
+                  <div className="space-y-2">
+                    {CAMPS.map((camp) => (
+                      <button
+                        key={camp.id}
+                        type="button"
+                        onClick={() => selectCamp(camp.id)}
+                        className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                          form.campId === camp.id
+                            ? "bg-yellow-400/10 border-yellow-400"
+                            : "bg-gray-900 border-gray-700 hover:border-gray-500"
+                        }`}
+                      >
+                        <p className={`text-sm font-semibold ${form.campId === camp.id ? "text-yellow-400" : "text-gray-300"}`}>{camp.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{camp.tagline}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label required>Choose Your Week</Label>
+                  <div className="space-y-2">
+                    {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).weeks.map((week) => (
+                      <button
+                        key={week.id}
+                        type="button"
+                        onClick={() => selectWeek(week.id)}
+                        className={`w-full text-left px-4 py-3 rounded-lg border text-sm font-medium transition-all ${
+                          form.weekId === week.id
+                            ? "bg-yellow-400/10 border-yellow-400 text-yellow-400"
+                            : "bg-gray-900 border-gray-700 text-gray-300 hover:border-gray-500"
+                        }`}
+                      >
+                        {week.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label required>Choose Your Session</Label>
+                  <div className="space-y-2">
+                    {(CAMPS.find((c) => c.id === form.campId) ?? CAMPS[0]).sessions.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => selectSession(s.id)}
+                        className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
+                          form.session === s.id
+                            ? "bg-yellow-400/10 border-yellow-400"
+                            : "bg-gray-900 border-gray-700 hover:border-gray-500"
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className={`text-sm font-medium ${form.session === s.id ? "text-yellow-400" : "text-gray-300"}`}>{s.label}</p>
+                            <p className="text-xs text-gray-500 mt-0.5">{s.time} &middot; Mon–Thu</p>
+                          </div>
+                          <span className={`text-base font-bold ${form.session === s.id ? "text-yellow-400" : "text-gray-400"}`}>${s.price}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {form.session && form.weekId > 0 && (
+                  <div className="bg-yellow-400/10 border border-yellow-400/30 rounded-lg px-4 py-3">
+                    <p className="text-xs text-gray-400 uppercase tracking-wide">Your selection</p>
+                    <p className="text-white text-sm font-medium mt-1">{form.weekLabel}</p>
+                    <p className="text-gray-400 text-sm">{form.sessionLabel} &middot; {form.sessionTime}</p>
+                    <p className="text-yellow-400 font-bold text-lg mt-1">${form.price}.00</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -524,18 +727,44 @@ export default function RegistrationPage() {
                 <span className="text-gray-400">Child</span>
                 <span className="text-white font-medium">{form.childName}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Week</span>
-                <span className="text-white">{form.weekLabel}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Session</span>
-                <span className="text-white">{form.sessionLabel} &middot; {form.sessionTime}</span>
-              </div>
-              <div className="flex justify-between text-sm pt-2 border-t border-gray-700">
-                <span className="text-gray-400 font-medium">Total</span>
-                <span className="text-yellow-400 font-bold text-lg">${form.price}.00</span>
-              </div>
+              {form.isBundle ? (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Week 1</span>
+                    <span className="text-white text-right">{form.campLabel} &middot; {form.weekLabel}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Week 2</span>
+                    <span className="text-white text-right">{form.camp2Label} &middot; {form.week2Label}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Session</span>
+                    <span className="text-white">Full Day &middot; 9AM–4PM</span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-gray-700">
+                    <span className="text-gray-400 font-medium">Total</span>
+                    <div className="text-right">
+                      <span className="text-yellow-400 font-bold text-lg">${BUNDLE_PRICE}.00</span>
+                      <span className="ml-2 text-xs bg-yellow-400 text-black font-bold px-2 py-0.5 rounded-full">FLASH SALE</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Week</span>
+                    <span className="text-white">{form.weekLabel}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Session</span>
+                    <span className="text-white">{form.sessionLabel} &middot; {form.sessionTime}</span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-gray-700">
+                    <span className="text-gray-400 font-medium">Total</span>
+                    <span className="text-yellow-400 font-bold text-lg">${form.price}.00</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="bg-gray-900 border border-gray-700 rounded-xl p-4">
@@ -606,7 +835,7 @@ export default function RegistrationPage() {
               disabled={loading}
               className="flex-1 py-3.5 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Redirecting to payment..." : `Pay $${form.price}.00 →`}
+              {loading ? "Redirecting to payment..." : `Pay $${form.isBundle ? BUNDLE_PRICE : form.price}.00 →`}
             </button>
           )}
         </div>

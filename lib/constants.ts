@@ -1,3 +1,6 @@
+export const BUNDLE_PRICE = 290;
+export const FLASH_SALE_END = new Date("2026-05-29T00:00:00"); // ends end of day May 28
+
 export const CAMP_WEEKS = [
   { id: 1, label: "Week 1 — June 1–4" },
   { id: 2, label: "Week 2 — June 8–11" },
